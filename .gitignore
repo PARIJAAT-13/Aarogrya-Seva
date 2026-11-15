@@ -1,0 +1,71 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+ENV/
+env/
+.venv/
+
+# Environment Variables
+.env
+*.env
+!.env.example
+backend/.env
+frontend/.env
+
+# SQLite Database & Storage
+*.db
+*.sqlite3
+backend/*.db
+rural_health.db
+backend/rural_health.db
+
+# Uploaded Files
+uploads/*
+!uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Node.js & Frontend build
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.vite/
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+

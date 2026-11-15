@@ -1,0 +1,158 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        // Unique Identity Palette
+        obsidian: {
+          DEFAULT: '#171923',
+          dark: '#10121A',
+          light: '#252837',
+          900: '#171923',
+        },
+        plum: {
+          DEFAULT: '#352447',
+          dark: '#261833',
+          light: '#493262',
+          surface: '#3F2C54',
+          900: '#352447',
+        },
+        orchid: {
+          DEFAULT: '#A879E8',
+          hover: '#9563D6',
+          active: '#834EC5',
+          light: '#C4A5F5',
+          soft: '#E9DDF8',
+          50: '#FAF7FD',
+          100: '#F4EDFC',
+          200: '#E9DDF8',
+          300: '#D5BEF4',
+          400: '#BE9BEF',
+          500: '#A879E8',
+          600: '#9563D6',
+          700: '#834EC5',
+        },
+        lavender: {
+          DEFAULT: '#E9DDF8',
+          hover: '#DDD0EE',
+          light: '#F5F0FC',
+          soft: '#FAF8FD',
+          50: '#FAF8FD',
+          100: '#F5F0FC',
+          200: '#E9DDF8',
+          300: '#DCCAF2',
+        },
+        champagne: {
+          DEFAULT: '#E7D4AE',
+          hover: '#DCBFA8',
+          light: '#F8F3EA',
+          soft: '#FCFAF6',
+          dark: '#B89759',
+          50: '#FCFAF6',
+          100: '#F8F3EA',
+          200: '#E7D4AE',
+          600: '#B89759',
+        },
+        porcelain: {
+          DEFAULT: '#FAF9FC',
+          light: '#FFFFFF',
+          dark: '#F0EEF5',
+          50: '#FFFFFF',
+          100: '#FAF9FC',
+          200: '#F0EEF5',
+        },
+        'muted-grey': {
+          DEFAULT: '#858392',
+          light: '#A5A3B0',
+          dark: '#5C5A66',
+        },
+        // Common tokens
+        'app-bg': '#FAF9FC',
+        'app-text': '#171923',
+        'subtle-border': '#E9DDF8',
+        'card-surface': '#FFFFFF',
+
+        // Compatibility Aliases mapped to new identity palette
+        primary: {
+          DEFAULT: '#A879E8',
+          hover: '#9563D6',
+          active: '#834EC5',
+          50: '#FAF7FD',
+          100: '#F4EDFC',
+          500: '#A879E8',
+          600: '#9563D6',
+          700: '#834EC5',
+        },
+        forest: {
+          DEFAULT: '#352447',
+          dark: '#261833',
+          surface: '#3F2C54',
+          light: '#493262',
+          900: '#352447',
+        },
+        sage: {
+          DEFAULT: '#A879E8',
+          hover: '#9563D6',
+          active: '#834EC5',
+          light: '#C4A5F5',
+          soft: '#E9DDF8',
+          50: '#FAF7FD',
+          100: '#F4EDFC',
+          200: '#E9DDF8',
+          300: '#D5BEF4',
+          400: '#BE9BEF',
+          500: '#A879E8',
+          600: '#9563D6',
+        },
+        ivory: {
+          DEFAULT: '#FAF9FC',
+          light: '#FFFFFF',
+          dark: '#F0EEF5',
+          50: '#FFFFFF',
+          100: '#FAF9FC',
+          200: '#F0EEF5',
+        },
+        gold: {
+          DEFAULT: '#E7D4AE',
+          hover: '#DCBFA8',
+          light: '#F8F3EA',
+          soft: '#FCFAF6',
+          dark: '#B89759',
+        },
+        charcoal: {
+          DEFAULT: '#171923',
+          muted: '#858392',
+          light: '#A5A3B0',
+        },
+        brand: {
+          50: '#F4EDFC',
+          100: '#E9DDF8',
+          500: '#A879E8',
+          600: '#9563D6',
+          900: '#352447',
+        },
+        medical: {
+          50: '#F4EDFC',
+          100: '#E9DDF8',
+          500: '#A879E8',
+          600: '#9563D6',
+          900: '#352447',
+        }
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+      },
+      boxShadow: {
+        'soft': '0 2px 10px rgba(53, 36, 71, 0.04), 0 1px 3px rgba(23, 25, 35, 0.04)',
+        'soft-md': '0 4px 18px rgba(53, 36, 71, 0.06), 0 2px 6px rgba(168, 121, 232, 0.05)',
+        'soft-lg': '0 12px 30px rgba(53, 36, 71, 0.10), 0 4px 12px rgba(168, 121, 232, 0.06)',
+        'glow-orchid': '0 0 25px rgba(168, 121, 232, 0.25)',
+      }
+    },
+  },
+  plugins: [],
+}

@@ -16,6 +16,14 @@ import { SettingsPage } from './pages/SettingsPage';
 import { UsersManagementPage } from './pages/UsersManagementPage';
 import { LoginPage } from './pages/LoginPage';
 
+// Milestone 2 AI Pages
+import { AIAssistantOverviewPage } from './pages/ai/AIAssistantOverviewPage';
+import { MedicalTranslationPage } from './pages/ai/MedicalTranslationPage';
+import { MedicalSimplificationPage } from './pages/ai/MedicalSimplificationPage';
+import { MedicalNERPage } from './pages/ai/MedicalNERPage';
+import { SymptomExplorerPage } from './pages/ai/SymptomExplorerPage';
+import { HealthcareKnowledgeBasePage } from './pages/ai/HealthcareKnowledgeBasePage';
+
 // Modals
 import { DocumentUploadModal } from './components/DocumentUploadModal';
 import { DocumentViewerModal } from './components/DocumentViewerModal';
@@ -60,6 +68,20 @@ const MainLayout: React.FC = () => {
   const [editingArticle, setEditingArticle] = useState<HealthcareArticle | null>(null);
 
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  // Milestone 2 AI navigation preselection
+  const [aiPreselectedDoc, setAiPreselectedDoc] = useState<MedicalDocument | null>(null);
+  const [aiPreselectedText, setAiPreselectedText] = useState<string>('');
+
+  const handleTranslateDocument = (doc: MedicalDocument) => {
+    setAiPreselectedDoc(doc);
+    setActiveTab('ai_translation');
+  };
+
+  const handleExtractDocEntities = (doc: MedicalDocument) => {
+    setAiPreselectedDoc(doc);
+    setActiveTab('ai_ner');
+  };
 
   const loadSupportingData = async () => {
     if (!user) return;
@@ -233,6 +255,25 @@ const MainLayout: React.FC = () => {
             {activeTab === 'users' && <UsersManagementPage />}
             {activeTab === 'profile' && <ProfilePage />}
             {activeTab === 'settings' && <SettingsPage />}
+
+            {/* Milestone 2 AI Medical Assistant Pages */}
+            {activeTab === 'ai_overview' && (
+              <AIAssistantOverviewPage onNavigateTab={(tab) => setActiveTab(tab)} />
+            )}
+            {activeTab === 'ai_translation' && (
+              <MedicalTranslationPage
+                initialDocument={aiPreselectedDoc}
+                initialText={aiPreselectedText}
+                patients={patients}
+                documents={documents}
+              />
+            )}
+            {activeTab === 'ai_simplification' && <MedicalSimplificationPage />}
+            {activeTab === 'ai_ner' && (
+              <MedicalNERPage patients={patients} documents={documents} />
+            )}
+            {activeTab === 'ai_symptoms' && <SymptomExplorerPage />}
+            {activeTab === 'ai_knowledge' && <HealthcareKnowledgeBasePage />}
           </div>
         </main>
       </div>
@@ -251,6 +292,8 @@ const MainLayout: React.FC = () => {
       <DocumentViewerModal
         document={viewingDocument}
         onClose={() => setViewingDocument(null)}
+        onTranslateDoc={handleTranslateDocument}
+        onExtractDoc={handleExtractDocEntities}
       />
 
       <PatientModal

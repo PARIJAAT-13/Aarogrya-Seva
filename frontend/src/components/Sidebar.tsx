@@ -20,6 +20,11 @@ import {
   ChevronRight,
   X,
   Sparkles,
+  Languages,
+  FileCode,
+  Cpu,
+  Activity,
+  BookOpenCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -59,6 +64,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ...(isAdmin ? [{ id: 'users', label: 'User Directory & Logs', icon: ShieldCheck }] : []),
     { id: 'profile', label: 'My Profile', icon: UserCircle },
     { id: 'settings', label: 'Preferences & Locale', icon: Settings },
+  ];
+
+  const aiNavItems = [
+    { id: 'ai_overview', label: 'AI Assistant Hub', icon: Sparkles },
+    { id: 'ai_translation', label: 'Medical Translation', icon: Languages },
+    { id: 'ai_simplification', label: 'Medical Simplification', icon: FileCode },
+    { id: 'ai_ner', label: 'Entity Extraction (NER)', icon: Cpu },
+    { id: 'ai_symptoms', label: 'Symptom Explorer', icon: Activity },
+    { id: 'ai_knowledge', label: 'Healthcare Knowledge', icon: BookOpenCheck },
   ];
 
   const handleNavClick = (id: string) => {
@@ -162,6 +176,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Icon
                   className={`w-4 h-4 shrink-0 transition-colors ${
                     isActive ? 'text-white' : 'text-[#E9DDF8]/70'
+                  }`}
+                />
+                {!isCollapsed && (
+                  <span className="truncate tracking-tight">{item.label}</span>
+                )}
+                {!isCollapsed && isActive && (
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#E7D4AE]"></div>
+                )}
+              </button>
+            );
+          })}
+
+          {/* AI Medical Assistant Section */}
+          {!isCollapsed && (
+            <div className="px-3 pt-3 pb-1 text-[10px] font-bold text-[#E7D4AE] uppercase tracking-widest flex items-center justify-between border-t border-white/10 mt-3">
+              <span>AI Medical Assistant</span>
+              <span className="px-1.5 py-0.2 rounded bg-orchid/20 text-orchid-light text-[9px] font-bold">M2</span>
+            </div>
+          )}
+
+          {aiNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleNavClick(item.id)}
+                title={isCollapsed ? item.label : undefined}
+                className={`w-full flex items-center cursor-pointer transition-all duration-200 ${
+                  isCollapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3.5 py-2.5'
+                } text-xs font-semibold rounded-xl ${
+                  isActive
+                    ? 'bg-gradient-to-r from-[#A879E8] to-[#915BDB] text-white shadow-soft-md shadow-[#A879E8]/20 font-bold'
+                    : 'text-white/75 hover:text-white hover:bg-white/8 hover:translate-x-0.5'
+                }`}
+              >
+                <Icon
+                  className={`w-4 h-4 shrink-0 transition-colors ${
+                    isActive ? 'text-white' : 'text-[#A879E8]'
                   }`}
                 />
                 {!isCollapsed && (

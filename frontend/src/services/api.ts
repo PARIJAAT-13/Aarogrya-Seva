@@ -164,5 +164,89 @@ export const api = {
   },
   toggleUserActive: (id: number) => request<any>(`/users/${id}/toggle-active`, { method: 'PATCH' }),
   getActivityLogs: (limit = 50) => request<any>(`/users/activity-logs?limit=${limit}`),
+
+  // =========================================================================
+  // MILESTONE 2: AI MEDICAL ASSISTANT ENDPOINTS
+  // =========================================================================
+  extractDocumentText: (formData: FormData) =>
+    request<any>('/ai/extract-text', { method: 'POST', body: formData }),
+
+  translateMedicalText: (data: {
+    text: string;
+    target_language: string;
+    source_language?: string;
+    patient_id?: number;
+    document_id?: number;
+    document_type?: string;
+  }) => request<any>('/ai/translate', { method: 'POST', body: JSON.stringify(data) }),
+
+  listTranslations: (params: { patient_id?: number; document_id?: number; limit?: number } = {}) => {
+    const q = new URLSearchParams();
+    if (params.patient_id) q.append('patient_id', params.patient_id.toString());
+    if (params.document_id) q.append('document_id', params.document_id.toString());
+    if (params.limit) q.append('limit', params.limit.toString());
+    return request<any>(`/ai/translations?${q.toString()}`);
+  },
+
+  getTranslation: (id: number) => request<any>(`/ai/translations/${id}`),
+
+  simplifyMedicalText: (data: {
+    text: string;
+    target_language?: string;
+    patient_id?: number;
+    document_id?: number;
+  }) => request<any>('/ai/simplify', { method: 'POST', body: JSON.stringify(data) }),
+
+  extractEntities: (data: {
+    text: string;
+    patient_id?: number;
+    document_id?: number;
+    source_type?: string;
+  }) => request<any>('/ai/extract-entities', { method: 'POST', body: JSON.stringify(data) }),
+
+  listExtractedEntities: (params: { patient_id?: number; document_id?: number; limit?: number } = {}) => {
+    const q = new URLSearchParams();
+    if (params.patient_id) q.append('patient_id', params.patient_id.toString());
+    if (params.document_id) q.append('document_id', params.document_id.toString());
+    if (params.limit) q.append('limit', params.limit.toString());
+    return request<any>(`/ai/extracted-entities?${q.toString()}`);
+  },
+
+  listSymptoms: (params: { query?: string; category?: string; language?: string } = {}) => {
+    const q = new URLSearchParams();
+    if (params.query) q.append('query', params.query);
+    if (params.category) q.append('category', params.category);
+    if (params.language) q.append('language', params.language);
+    return request<any>(`/ai/symptoms?${q.toString()}`);
+  },
+
+  getSymptomDetail: (id: number) => request<any>(`/ai/symptoms/${id}`),
+
+  listKnowledgeBase: (params: { query?: string; category?: string } = {}) => {
+    const q = new URLSearchParams();
+    if (params.query) q.append('query', params.query);
+    if (params.category) q.append('category', params.category);
+    return request<any>(`/ai/knowledge-base?${q.toString()}`);
+  },
+
+  getKnowledgeBaseArticle: (id: number) => request<any>(`/ai/knowledge-base/${id}`),
+
+  createKnowledgeBaseArticle: (data: any) =>
+    request<any>('/ai/knowledge-base', { method: 'POST', body: JSON.stringify(data) }),
+
+  updateKnowledgeBaseArticle: (id: number, data: any) =>
+    request<any>(`/ai/knowledge-base/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deleteKnowledgeBaseArticle: (id: number) =>
+    request<any>(`/ai/knowledge-base/${id}`, { method: 'DELETE' }),
+
+  listTerminology: (params: { query?: string; category?: string } = {}) => {
+    const q = new URLSearchParams();
+    if (params.query) q.append('query', params.query);
+    if (params.category) q.append('category', params.category);
+    return request<any>(`/ai/terminology?${q.toString()}`);
+  },
+
+  getAIDashboardStats: () => request<any>('/ai/stats'),
 };
 

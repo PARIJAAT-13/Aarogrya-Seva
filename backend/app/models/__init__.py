@@ -6,6 +6,13 @@ from app.models.document import MedicalDocument, Prescription, DischargeSummary,
 from app.models.medical_record import MedicalRecord, PatientHistory
 from app.models.content import HealthcareContent
 from app.models.activity import ActivityLog
+from app.models.ai_engine import (
+    TranslationHistory,
+    ExtractedMedicalEntity,
+    SymptomInformation,
+    HealthcareKnowledgeBase,
+    MedicalTerminology,
+)
 
 __all__ = [
     "Base",
@@ -21,5 +28,10 @@ __all__ = [
     "PatientHistory",
     "HealthcareContent",
     "ActivityLog",
+    "TranslationHistory",
+    "ExtractedMedicalEntity",
+    "SymptomInformation",
+    "HealthcareKnowledgeBase",
+    "MedicalTerminology",
 ]
 

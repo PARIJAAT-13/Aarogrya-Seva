@@ -70,3 +70,6 @@ require_worker_or_admin = RoleChecker([UserRole.HEALTHCARE_WORKER.value, UserRol
 require_patient = RoleChecker([UserRole.PATIENT.value])
 require_any_role = RoleChecker([UserRole.PATIENT.value, UserRole.HEALTHCARE_WORKER.value, UserRole.ADMIN.value])
 
+get_current_active_user = get_current_user
+get_admin_user = require_admin
+

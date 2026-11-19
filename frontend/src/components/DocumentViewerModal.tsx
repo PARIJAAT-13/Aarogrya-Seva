@@ -1,14 +1,21 @@
 import React from 'react';
 import { MedicalDocument } from '../types';
 import { api } from '../services/api';
-import { X, Download, FileText, Calendar, User, HardDrive } from 'lucide-react';
+import { X, Download, FileText, Calendar, User, HardDrive, Languages, Cpu } from 'lucide-react';
 
 interface DocumentViewerModalProps {
   document: MedicalDocument | null;
   onClose: () => void;
+  onTranslateDoc?: (doc: MedicalDocument) => void;
+  onExtractDoc?: (doc: MedicalDocument) => void;
 }
 
-export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({ document, onClose }) => {
+export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
+  document,
+  onClose,
+  onTranslateDoc,
+  onExtractDoc,
+}) => {
   if (!document) return null;
 
   const isImage = document.mime_type.startsWith('image/');
@@ -37,7 +44,35 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({ docume
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {onTranslateDoc && (
+              <button
+                onClick={() => {
+                  onTranslateDoc(document);
+                  onClose();
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#352447] bg-[#E9DDF8] hover:bg-[#D5BEF4] rounded-xl transition-all cursor-pointer"
+                title="Translate clinical document"
+              >
+                <Languages className="w-3.5 h-3.5 text-[#A879E8]" />
+                <span className="hidden sm:inline">Translate</span>
+              </button>
+            )}
+
+            {onExtractDoc && (
+              <button
+                onClick={() => {
+                  onExtractDoc(document);
+                  onClose();
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#352447] bg-[#E9DDF8] hover:bg-[#D5BEF4] rounded-xl transition-all cursor-pointer"
+                title="Extract medical entities"
+              >
+                <Cpu className="w-3.5 h-3.5 text-[#A879E8]" />
+                <span className="hidden sm:inline">Extract NER</span>
+              </button>
+            )}
+
             <a
               href={downloadUrl}
               download={document.original_filename}

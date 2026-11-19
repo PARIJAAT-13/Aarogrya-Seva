@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.database.session import engine, SessionLocal, Base
 from app.database.seed import seed_database
+from app.database.seed_ai import seed_ai_engine_data
 import app.models # Ensure all models are registered
 
 # Import all API routers
@@ -20,6 +21,7 @@ from app.api.medical_reports import router as medical_reports_router
 from app.api.medical_records import router as medical_records_router
 from app.api.content import router as content_router
 from app.api.users import router as users_router
+from app.api.ai_engine import router as ai_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,6 +31,7 @@ async def lifespan(app: FastAPI):
         db = SessionLocal()
         try:
             seed_database(db)
+            seed_ai_engine_data(db)
         finally:
             db.close()
     except Exception as e:
@@ -67,6 +70,7 @@ app.include_router(medical_reports_router, prefix=settings.API_V1_STR)
 app.include_router(medical_records_router, prefix=settings.API_V1_STR)
 app.include_router(content_router, prefix=settings.API_V1_STR)
 app.include_router(users_router, prefix=settings.API_V1_STR)
+app.include_router(ai_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():

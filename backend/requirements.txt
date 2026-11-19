@@ -13,3 +13,11 @@ python-dotenv>=1.0.1
 httpx>=0.27.0
 pytest>=8.0.0
 
+# Milestone 2: AI-Powered Medical Translation, OCR & NLP Engine
+deep-translator>=1.11.4
+langdetect>=1.0.9
+PyMuPDF>=1.23.0
+pytesseract>=0.3.10
+Pillow>=10.0.0
+
+

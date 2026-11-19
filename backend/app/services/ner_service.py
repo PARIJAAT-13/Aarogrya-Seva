@@ -1,5 +1,8 @@
 import re
+import logging
 from typing import Dict, Any, List, Optional
+
+logger = logging.getLogger("aarogya_ner")
 
 # Medical Diseases & Conditions Ontology
 KNOWN_DISEASES = [
@@ -68,9 +71,10 @@ FREQUENCY_MAP = {
 
 class MedicalNEREngine:
     @classmethod
-    def extract_entities(cls, text: str) -> Dict[str, Any]:
+    def extract_entities(cls, text: str, custom_key: Optional[str] = None) -> Dict[str, Any]:
         """
         Extracts structured medical entities from clinical notes, prescriptions, or discharge summaries.
+        Integrates official OpenAI Responses API with robust clinical ontology fallback.
         Returns exact requested schema:
         {
           "diseases": [...],
@@ -87,7 +91,21 @@ class MedicalNEREngine:
                 "medical_terms": [],
                 "total_entities_count": 0,
                 "confidence_score": 1.0,
+                "uncertain_flags": [],
+                "ai_engine": "AarogyaSeva Medical NER",
             }
+
+        # Check for OpenAI integration
+        from app.services.openai_service import OpenAIService
+        fallback_note = ""
+        if OpenAIService.is_configured() or custom_key:
+            try:
+                ai_res = OpenAIService.extract_medical_entities(text=text, custom_key=custom_key)
+                if ai_res and (ai_res.get("diseases") or ai_res.get("medications") or ai_res.get("treatment_instructions")):
+                    return ai_res
+            except Exception as e:
+                fallback_note = f"OpenAI API {type(e).__name__}"
+                logger.warning("OpenAI NER extraction failed (%s: %s). Falling back to clinical ontology engine.", type(e).__name__, e)
 
         # 1. Extract Diseases & Conditions
         detected_diseases: List[str] = []
@@ -210,6 +228,7 @@ class MedicalNEREngine:
 
         total_count = len(detected_diseases) + len(detected_medications) + len(treatment_instructions) + len(detected_symptoms)
 
+        engine_label = f"AarogyaSeva Clinical Ontology (Fallback: {fallback_note})" if fallback_note else "AarogyaSeva Clinical Ontology"
         return {
             "diseases": detected_diseases,
             "medications": detected_medications,
@@ -218,4 +237,6 @@ class MedicalNEREngine:
             "medical_terms": detected_terms,
             "total_entities_count": total_count,
             "confidence_score": 0.94 if total_count > 0 else 0.85,
+            "ai_engine": engine_label,
+            "uncertain_flags": [],
         }

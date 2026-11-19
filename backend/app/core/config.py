@@ -45,6 +45,10 @@ class Settings(BaseSettings):
         "http://127.0.0.1:4173",
     ]
 
+    # Milestone 2: OpenAI API Configuration
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-5.4-mini"
+
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def assemble_database_url(cls, v: Union[str, None]) -> str:
@@ -67,7 +71,7 @@ class Settings(BaseSettings):
 
     class Config:
         case_sensitive = True
-        env_file = ".env"
+        env_file = (os.path.join(BACKEND_DIR, ".env"), ".env")
         extra = "allow"
 
 settings = Settings()

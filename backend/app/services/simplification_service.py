@@ -1,6 +1,9 @@
 import re
+import logging
 from typing import Dict, Any, List, Optional
 from app.services.translation_service import MedicalTranslator
+
+logger = logging.getLogger("aarogya_simplification")
 
 # Comprehensive clinical terms database with explanations across English, Hindi, and Telugu
 MEDICAL_DICTIONARY: Dict[str, Dict[str, Any]] = {
@@ -256,12 +259,14 @@ class MedicalSimplifier:
     def simplify_text(
         cls,
         text: str,
-        target_lang: str = "English"
+        target_lang: str = "English",
+        custom_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Converts complicated medical terminology into plain, patient-friendly explanations.
         Safeguards medicines, dosages, and numerical values.
         Supports English, Hindi, and Telugu output.
+        Integrates official OpenAI Responses API with robust fallback.
         """
         if not text or not text.strip():
             return {
@@ -270,7 +275,25 @@ class MedicalSimplifier:
                 "target_language": target_lang,
                 "identified_terms": [],
                 "preserved_elements": {"medications": [], "dosages": []},
+                "uncertain_flags": [],
+                "ai_engine": "AarogyaSeva AI Engine",
             }
+
+        # Check for OpenAI integration
+        from app.services.openai_service import OpenAIService
+        fallback_note = ""
+        if OpenAIService.is_configured() or custom_key:
+            try:
+                ai_res = OpenAIService.simplify_medical_text(
+                    text=text,
+                    target_language=target_lang,
+                    custom_key=custom_key
+                )
+                if ai_res and ai_res.get("simplified_text"):
+                    return ai_res
+            except Exception as e:
+                fallback_note = f"OpenAI API {type(e).__name__}"
+                logger.warning("OpenAI simplification failed (%s: %s). Falling back to clinical rules engine.", type(e).__name__, e)
 
         # Step 1: Extract preserved elements (medications and dosages) so they remain intact
         dosage_regex = re.findall(r'\b(?:\d+(?:\.\d+)?\s*(?:mg|g|mcg|ml|iu|tablets?|capsules?|drops?|puffs?))\b', text, re.IGNORECASE)
@@ -318,6 +341,7 @@ class MedicalSimplifier:
             )
             final_simplified = trans_res.get("translated_text", simplified_working_text)
 
+        engine_label = f"AarogyaSeva Clinical Lexicon (Fallback: {fallback_note})" if fallback_note else "AarogyaSeva Clinical Lexicon Engine"
         return {
             "original_text": text,
             "simplified_text": final_simplified,
@@ -330,5 +354,7 @@ class MedicalSimplifier:
             "medical_disclaimer": (
                 "This simplified summary is generated to aid understanding. "
                 "It does not replace clinical consultation or alter prescribed medical instructions."
-            )
+            ),
+            "ai_engine": engine_label,
+            "uncertain_flags": [],
         }

@@ -34,11 +34,18 @@ from app.schemas.ai_engine import (
     KnowledgeBaseArticleResponse,
     MedicalTerminologyResponse,
     AIDashboardStats,
+    GuidanceRequest,
+    GuidanceResponse,
+    SymptomExplainRequest,
+    SymptomExplainResponse,
+    TranslationComparisonRequest,
+    TranslationComparisonResponse,
 )
 from app.services.ocr_service import extract_text_from_file, detect_language_robust
 from app.services.translation_service import MedicalTranslator
 from app.services.simplification_service import MedicalSimplifier
 from app.services.ner_service import MedicalNEREngine
+from app.services.openai_service import OpenAIService
 from app.services.audit_service import log_activity
 
 router = APIRouter(prefix="/ai", tags=["AI Medical Assistant"])
@@ -249,6 +256,47 @@ def get_translation_detail(
         created_at=r.created_at,
     )
 
+@router.post("/translate/compare", response_model=TranslationComparisonResponse)
+def compare_translation_quality(
+    payload: TranslationComparisonRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Compares medical translation output between the independent local translation service
+    and the OpenAI Responses API.
+    """
+    # 1. Local service
+    existing_res = MedicalTranslator.translate_medical_text(
+        text=payload.text,
+        target_lang=payload.target_language,
+        source_lang=payload.source_language or "English"
+    )
+    existing_trans = existing_res.get("translated_text", "")
+
+    # 2. OpenAI translation
+    if OpenAIService.is_configured():
+        try:
+            openai_res = OpenAIService.translate_medical_text(
+                text=payload.text,
+                target_language=payload.target_language,
+                source_language=payload.source_language or "English"
+            )
+            openai_trans = openai_res.get("translated_text", "")
+        except Exception as e:
+            openai_trans = f"[OpenAI API unavailable ({type(e).__name__})]"
+    else:
+        openai_trans = f"[OpenAI not configured - showing local baseline]: {existing_trans}"
+
+    comparison = OpenAIService.compare_translations(
+        text=payload.text,
+        target_language=payload.target_language,
+        existing_translation=existing_trans,
+        openai_translation=openai_trans,
+    )
+
+    return TranslationComparisonResponse(**comparison)
+
 # =========================================================================
 # 3. Medical Terminology Simplification
 # =========================================================================
@@ -261,6 +309,7 @@ def simplify_medical_text(
     """
     Simplifies clinical terminology and instructions into patient-friendly explanations.
     Preserves exact medications, dosages, units, and critical directives.
+    Powered by OpenAI Responses API with clinical lexicon fallback.
     """
     res = MedicalSimplifier.simplify_text(
         text=payload.text,
@@ -274,6 +323,40 @@ def simplify_medical_text(
     )
 
     return SimplificationResponse(**res)
+
+@router.post("/guidance", response_model=GuidanceResponse)
+def get_contextual_medical_guidance(
+    payload: GuidanceRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generates patient-friendly educational guidance from clinical context.
+    Clearly distinguishes source facts from AI-generated explanations.
+    """
+    if OpenAIService.is_configured():
+        try:
+            res = OpenAIService.generate_medical_guidance(
+                clinical_context=payload.clinical_context,
+                language=payload.language or "English"
+            )
+            return GuidanceResponse(**res)
+        except Exception:
+            pass
+
+    # High-quality fallback guidance
+    res = {
+        "source_facts": payload.clinical_context,
+        "ai_educational_guidance": "Adhere strictly to the prescribed medicines. Take all doses on time with adequate clean water and attend planned medical follow-ups.",
+        "lifestyle_and_diet": ["Maintain good hydration", "Eat balanced, low-sodium meals", "Get 7-8 hours of restful sleep"],
+        "important_precautions": ["Do not stop or alter doses abruptly", "Avoid alcohol while on medication"],
+        "follow_up_advice": "Consult your local primary healthcare physician if any side effects occur or if symptoms persist.",
+        "language": payload.language or "English",
+        "medical_disclaimer": "Educational guidance only. Strictly adhere to your doctor's official advice.",
+        "ai_engine": "AarogyaSeva Clinical Guidance Engine",
+        "ai_generated": False,
+    }
+    return GuidanceResponse(**res)
 
 # =========================================================================
 # 4. Medical Named Entity Recognition (NER)
@@ -334,6 +417,8 @@ def extract_medical_entities(
         medical_terms=extracted["medical_terms"],
         total_entities_count=record.total_entities_count,
         confidence_score=record.confidence_score,
+        ai_engine=extracted.get("ai_engine", "AarogyaSeva AI Engine"),
+        uncertain_flags=extracted.get("uncertain_flags", []),
         created_at=record.created_at,
     )
 
@@ -465,6 +550,55 @@ def get_symptom_detail(
         related_faqs=faqs,
         reference_source=s.reference_source,
     )
+
+@router.post("/symptoms/explain", response_model=SymptomExplainResponse)
+def explain_symptom_ai(
+    payload: SymptomExplainRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generates an educational, non-diagnostic explanation of symptoms,
+    associated conditions, self-care, and when to seek medical evaluation.
+    Powered by OpenAI Responses API with clinical database fallback.
+    """
+    if OpenAIService.is_configured():
+        try:
+            res = OpenAIService.explain_symptom(
+                symptom_name=payload.symptom_name,
+                language=payload.language or "English"
+            )
+            return SymptomExplainResponse(**res)
+        except Exception:
+            pass
+
+    # Check database for existing symptom match
+    db_sym = db.query(SymptomInformation).filter(
+        or_(
+            SymptomInformation.symptom_name.ilike(f"%{payload.symptom_name}%"),
+            SymptomInformation.symptom_name_hi.ilike(f"%{payload.symptom_name}%"),
+            SymptomInformation.symptom_name_te.ilike(f"%{payload.symptom_name}%"),
+        )
+    ).first()
+
+    desc = db_sym.description_en if db_sym else f"{payload.symptom_name} is a common clinical symptom."
+    causes = [c.strip() for c in (db_sym.possible_causes_en.split(",") if db_sym else ["Viral illness", "Fatigue", "Environmental factor"])]
+    self_care = [s.strip() for s in (db_sym.self_care_advice_en.split(".") if db_sym else ["Rest adequately", "Drink plenty of clean fluids"])]
+    urgent = db_sym.when_to_see_doctor_en if db_sym else "Seek prompt medical care if symptoms persist beyond 48 hours or worsen."
+
+    res = {
+        "symptom_name": payload.symptom_name,
+        "language": payload.language or "English",
+        "explanation": desc,
+        "possible_associated_conditions": causes,
+        "preventive_and_self_care_measures": [s for s in self_care if s],
+        "red_flag_warning_signs": ["High persistent fever (>102°F)", "Difficulty breathing", "Loss of consciousness", "Severe chest pain"],
+        "when_to_see_doctor": urgent,
+        "medical_disclaimer": "Educational symptom overview only. This is not a diagnosis. Always consult a qualified doctor.",
+        "ai_engine": "AarogyaSeva Clinical Knowledge Base",
+        "ai_generated": False,
+    }
+    return SymptomExplainResponse(**res)
 
 # =========================================================================
 # 6. Multilingual Healthcare Knowledge Base

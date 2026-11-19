@@ -56,10 +56,10 @@ class TranslationHistoryResponse(BaseModel):
 # --- Medical Terminology Simplification ---
 class SimplifiedTermItem(BaseModel):
     term: str
-    category: str
-    simple_explanation_en: str
-    simple_explanation_hi: str
-    simple_explanation_te: str
+    category: Optional[str] = "Clinical Term"
+    simple_explanation_en: Optional[str] = ""
+    simple_explanation_hi: Optional[str] = ""
+    simple_explanation_te: Optional[str] = ""
     clinical_context: Optional[str] = None
 
 class SimplificationRequest(BaseModel):
@@ -78,6 +78,8 @@ class SimplificationResponse(BaseModel):
         "This simplified summary is generated to aid understanding. "
         "It does not replace clinical consultation or alter prescribed medical instructions."
     )
+    ai_engine: Optional[str] = "AarogyaSeva Medical AI"
+    uncertain_flags: Optional[List[str]] = []
 
 # --- Medical Information Extraction (NER) ---
 class MedicationEntity(BaseModel):
@@ -104,6 +106,8 @@ class EntityExtractionResponse(BaseModel):
     medical_terms: List[str] = []
     total_entities_count: int
     confidence_score: float
+    ai_engine: Optional[str] = "AarogyaSeva Medical AI"
+    uncertain_flags: Optional[List[str]] = []
     created_at: Optional[datetime] = None
 
 # --- Symptom Information ---
@@ -224,3 +228,51 @@ class AIDashboardStats(BaseModel):
     recent_extractions: List[EntityExtractionResponse]
     knowledge_base_article_count: int
     symptom_topics_count: int
+
+# --- Context-Based Medical Guidance ---
+class GuidanceRequest(BaseModel):
+    clinical_context: str = Field(..., min_length=2, description="Clinical context or prescription details")
+    language: Optional[str] = "English"
+
+class GuidanceResponse(BaseModel):
+    source_facts: str
+    ai_educational_guidance: str
+    lifestyle_and_diet: List[str] = []
+    important_precautions: List[str] = []
+    follow_up_advice: Optional[str] = ""
+    language: str
+    medical_disclaimer: str
+    ai_engine: str
+    ai_generated: bool = True
+
+# --- OpenAI Symptom Explanation ---
+class SymptomExplainRequest(BaseModel):
+    symptom_name: str = Field(..., min_length=2)
+    language: Optional[str] = "English"
+
+class SymptomExplainResponse(BaseModel):
+    symptom_name: str
+    language: str
+    explanation: str
+    possible_associated_conditions: List[str] = []
+    preventive_and_self_care_measures: List[str] = []
+    red_flag_warning_signs: List[str] = []
+    when_to_see_doctor: str
+    medical_disclaimer: str
+    ai_engine: str
+    ai_generated: bool = True
+
+# --- Translation Quality Comparison ---
+class TranslationComparisonRequest(BaseModel):
+    text: str = Field(..., min_length=2)
+    target_language: str = Field(..., description="Hindi, Telugu, or English")
+    source_language: Optional[str] = "English"
+
+class TranslationComparisonResponse(BaseModel):
+    original_text: str
+    target_language: str
+    existing_service_translation: str
+    openai_translation: str
+    metrics: Dict[str, Any]
+    recommendation: str
+
